@@ -1,0 +1,19 @@
+# 前端Vue.js开发环境的Dockerfile
+FROM node:16-alpine AS develop
+
+WORKDIR /app
+
+# 复制package.json和package-lock.json
+COPY frontend/package*.json ./
+
+# 安装依赖
+RUN npm install
+
+# 复制前端源代码
+COPY frontend/ .
+
+# 暴露Vite开发服务器端口
+EXPOSE 5173
+
+# 启动开发服务器
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

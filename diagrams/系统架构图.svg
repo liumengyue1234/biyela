@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 520" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .t { font: 13px sans-serif; fill: var(--color-text-primary, #444441); }
+      .ts { font: 12px sans-serif; fill: var(--color-text-secondary, #888780); }
+      .th { font: 500 14px sans-serif; fill: var(--color-text-primary, #444441); }
+      .box { fill: var(--color-background-secondary, #F1EFE8); stroke: var(--color-border-tertiary, rgba(0,0,0,0.15)); }
+      .node { cursor: pointer; }
+      .arr { stroke: var(--color-text-primary, #444441); stroke-width: 1.5; marker-end: url(#arrow); fill: none; }
+      .leader { stroke: var(--color-border-tertiary, rgba(0,0,0,0.15)); stroke-width: 0.5; stroke-dasharray: 4,4; fill: none; }
+      .c-blue { fill: #E6F1FB; stroke: #378ADD; }
+    </style>
+  </defs>
+  
+  <!-- Title -->
+  <text x="340" y="30" class="th" text-anchor="middle">CT图像松材线虫病检测系统 - 系统架构图</text>
+  
+  <!-- User Layer -->
+  <rect x="40" y="60" width="600" height="80" rx="12" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+  <text x="340" y="85" class="t" text-anchor="middle" dominant-baseline="central">用户层</text>
+  
+  <rect x="80" y="100" width="120" height="30" rx="8" class="box" stroke-width="0.5"/>
+  <text x="140" y="115" class="t" text-anchor="middle" dominant-baseline="central" font-size="12">研究人员</text>
+  
+  <rect x="240" y="100" width="120" height="30" rx="8" class="box" stroke-width="0.5"/>
+  <text x="300" y="115" class="t" text-anchor="middle" dominant-baseline="central" font-size="12">病理专家</text>
+  
+  <rect x="400" y="100" width="120" height="30" rx="8" class="box" stroke-width="0.5"/>
+  <text x="460" y="115" class="t" text-anchor="middle" dominant-baseline="central" font-size="12">系统管理员</text>
+  
+  <rect x="560" y="100" width="60" height="30" rx="8" class="box" stroke-width="0.5"/>
+  <text x="590" y="115" class="t" text-anchor="middle" dominant-baseline="central" font-size="12">游客</text>
+  
+  <!-- Frontend Layer -->
+  <rect x="40" y="180" width="600" height="100" rx="12" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+  <text x="340" y="205" class="t" text-anchor="middle" dominant-baseline="central">前端展示层 (Vue3 + Element Plus)</text>
+  
+  <rect x="80" y="225" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="130" y="245" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">登录注册</text>
+  
+  <rect x="210" y="225" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="260" y="245" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">图像上传</text>
+  
+  <rect x="340" y="225" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="390" y="245" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">检测结果显示</text>
+  
+  <rect x="470" y="225" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="520" y="245" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">报告管理</text>
+  
+  <rect x="560" y="225" width="60" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="590" y="245" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">EChart</text>
+  
+  <!-- Backend Layer -->
+  <rect x="40" y="320" width="600" height="100" rx="12" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+  <text x="340" y="345" class="t" text-anchor="middle" dominant-baseline="central">后端服务层 (Spring Boot + MyBatis Plus)</text>
+  
+  <rect x="80" y="365" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="130" y="385" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">用户管理</text>
+  
+  <rect x="210" y="365" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="260" y="385" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">图像处理</text>
+  
+  <rect x="340" y="365" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="390" y="385" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">检测记录</text>
+  
+  <rect x="470" y="365" width="100" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="520" y="385" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">报告生成</text>
+  
+  <rect x="560" y="365" width="60" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="590" y="385" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">JWT</text>
+  
+  <!-- Deep Learning Layer -->
+  <rect x="40" y="460" width="600" height="40" rx="12" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+  <text x="340" y="480" class="t" text-anchor="middle" dominant-baseline="central">深度学习服务层 (PyTorch + Flask) - U-Net / Mask R-CNN / YOLO</text>
+  
+  <!-- Database -->
+  <rect x="280" y="460" width="120" height="40" rx="8" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+  <text x="340" y="480" class="t" text-anchor="middle" dominant-baseline="central" font-size="11">MySQL数据库</text>
+  
+  <!-- Arrows -->
+  <path d="M 340 140 L 340 180" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)" fill="none" class="arr"/>
+  <path d="M 340 280 L 340 320" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)" fill="none" class="arr"/>
+  <path d="M 200 420 L 200 460" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)" fill="none" class="arr"/>
+  <path d="M 480 420 L 480 460" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)" fill="none" class="arr"/>
+  
+</svg>

@@ -1,0 +1,36 @@
+# 后端Spring Boot服务的Dockerfile
+FROM maven:3.8.6-openjdk-8-slim AS build
+
+WORKDIR /app
+
+# 复制pom.xml和源代码
+COPY backend/pom.xml .
+COPY backend/src ./src
+
+# 复制本地依赖库（如果有）
+COPY backend/lib ./lib
+
+# 构建应用（跳过测试）
+RUN mvn clean package -DskipTests
+
+# 运行阶段
+FROM openjdk:8-jre-slim
+
+WORKDIR /app
+
+# 从构建阶段复制jar包
+COPY --from=build /app/target/*.jar app.jar
+
+# 创建上传目录
+RUN mkdir -p /app/uploads/images \
+    && mkdir -p /app/uploads/results \
+    && mkdir -p /app/uploads/reports
+
+# 暴露端口
+EXPOSE 8080
+
+# 设置时区
+ENV TZ=Asia/Shanghai
+
+# 启动命令
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]

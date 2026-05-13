@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pinewilt.mapper.DetectionRecordMapper">
+
+    <!-- 模型检测统计 -->
+    <select id="getModelStats" resultType="java.util.Map">
+        SELECT
+            model_name AS modelName,
+            COUNT(*) AS totalDetections,
+            AVG(dice_score) AS avgDice,
+            AVG(iou_score) AS avgIoU,
+            AVG(precision) AS avgPrecision,
+            AVG(recall) AS avgRecall,
+            AVG(f1_score) AS avgF1,
+            AVG(accuracy) AS avgAccuracy,
+            AVG(inference_time) AS avgInferenceTime
+        FROM detection_record
+        WHERE deleted = 0
+        GROUP BY model_name
+        ORDER BY avgDice DESC
+    </select>
+
+    <!-- 按日期统计检测数量 -->
+    <select id="getDetectionCountByDate" resultType="java.util.Map">
+        SELECT
+            DATE(create_time) AS date,
+            COUNT(*) AS count
+        FROM detection_record
+        WHERE deleted = 0
+            AND create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY date ASC
+    </select>
+
+    <!-- 用户检测历史统计 -->
+    <select id="getUserDetectionStats" resultType="java.util.Map">
+        SELECT
+            u.username,
+            COUNT(d.id) AS totalDetections,
+            AVG(d.dice_score) AS avgDice
+        FROM detection_record d
+        LEFT JOIN sys_user u ON d.user_id = u.id
+        WHERE d.deleted = 0
+        GROUP BY d.user_id, u.username
+        ORDER BY totalDetections DESC
+    </select>
+
+</mapper>

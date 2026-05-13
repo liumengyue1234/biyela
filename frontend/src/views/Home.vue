@@ -1,184 +1,202 @@
 <template>
-  <div class="home-container">
-    <el-row :gutter="20" class="status-row">
-      <el-col :span="6" v-for="item in statusCards" :key="item.title">
-        <el-card shadow="hover" class="status-card">
-          <div class="card-content">
-            <div class="card-icon" :style="{ background: item.bg }">
-              <el-icon :size="32"><component :is="item.icon" /></el-icon>
+  <div class="home">
+    <!-- 统计卡片 -->
+    <el-row :gutter="20" class="stats-row">
+      <el-col :span="6" v-for="item in stats" :key="item.title">
+        <el-card shadow="hover" class="stats-card">
+          <div class="stats-content">
+            <div class="stats-icon" :style="{background: item.bg}">
+              <el-icon :size="28" color="#fff">
+                <component :is="item.icon" />
+              </el-icon>
             </div>
-            <div class="card-info">
-              <div class="card-value">{{ item.value }}</div>
-              <div class="card-title">{{ item.title }}</div>
+            <div class="stats-info">
+              <div class="stats-value">{{ item.value }}</div>
+              <div class="stats-title">{{ item.title }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
+    <!-- 图表区域 -->
     <el-row :gutter="20" class="chart-row">
       <el-col :span="16">
         <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>系统概览</span>
-            </div>
-          </template>
-          <div ref="overviewChart" class="chart-box"></div>
+          <template #header>模型性能对比</template>
+          <div ref="barChartRef" style="height:350px"></div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card shadow="hover">
-          <template #header>
-            <div class="card-header">
-              <span>检测类别分布</span>
-            </div>
-          </template>
-          <div ref="pieChart" class="chart-box"></div>
+          <template #header>检测状态分布</template>
+          <div ref="pieChartRef" style="height:350px"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row class="quick-row">
-      <el-col :span="24">
-        <el-card shadow="hover">
-          <template #header>
-            <span>快速操作</span>
+    <!-- 最近检测记录 -->
+    <el-card shadow="hover" class="recent-card">
+      <template #header>最近检测记录</template>
+      <el-table :data="recentRecords" stripe style="width:100%">
+        <el-table-column prop="imageName" label="影像名称" />
+        <el-table-column prop="modelName" label="模型名称" />
+        <el-table-column label="检测结果">
+          <template #default="{ row }">
+            <el-tag :type="row.result === 'positive' ? 'danger' : 'success'">
+              {{ row.result === 'positive' ? '阳性' : '阴性' }}
+            </el-tag>
           </template>
-          <div class="quick-actions">
-            <el-button type="primary" size="large" @click="goDetection">
-              <el-icon><Upload /></el-icon>
-              上传CT影像检测
-            </el-button>
-            <el-button type="success" size="large" @click="goHistory">
-              <el-icon><Clock /></el-icon>
-              查看历史记录
-            </el-button>
-            <el-button type="warning" size="large" @click="goReport">
-              <el-icon><Document /></el-icon>
-              生成检测报告
-            </el-button>
-            <el-button type="info" size="large" @click="goModelCompare">
-              <el-icon><DataAnalysis /></el-icon>
-              模型对比分析
-            </el-button>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </el-table-column>
+        <el-table-column prop="diceScore" label="Dice系数" />
+        <el-table-column prop="createTime" label="检测时间" />
+      </el-table>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { PictureFilled, DataAnalysis, Document, User } from '@element-plus/icons-vue'
+import {
+  PictureFilled, Memo, User, DataAnalysis
+} from '@element-plus/icons-vue'
+import { detectionApi } from '@/api'
 
-const router = useRouter()
-const overviewChart = ref(null)
-const pieChart = ref(null)
-
-const statusCards = ref([
-  { title: 'CT影像总数', value: '1,326', icon: PictureFilled, bg: '#409eff20' },
-  { title: '检测次数', value: '856', icon: DataAnalysis, bg: '#67c23a20' },
-  { title: '生成报告', value: '432', icon: Document, bg: '#e6a23c20' },
-  { title: '用户数量', value: '12', icon: User, bg: '#90939920' },
+const stats = ref([
+  { title: '影像总数', value: 0, icon: 'PictureFilled', bg: '#409eff' },
+  { title: '检测次数', value: 0, icon: 'DataAnalysis', bg: '#67c23a' },
+  { title: '用户数', value: 0, icon: 'User', bg: '#e6a23c' },
+  { title: '报告数', value: 0, icon: 'Memo', bg: '#f56c6c' },
 ])
 
-const goDetection = () => router.push('/detection')
-const goHistory = () => router.push('/history')
-const goReport = () => router.push('/report')
-const goModelCompare = () => router.push('/model-compare')
+const recentRecords = ref([])
+const barChartRef = ref(null)
+const pieChartRef = ref(null)
+let barChart = null
+let pieChart = null
+
+const fetchStats = async () => {
+  try {
+    const res = await detectionApi.getDetectionHistory({ page:1, pageSize:1 })
+    if (res.code === 200) {
+      stats.value[1].value = res.data.total || 0
+    }
+  } catch(e) {}
+}
+
+const fetchRecentRecords = async () => {
+  try {
+    const res = await detectionApi.getDetectionHistory({ page:1, pageSize:5 })
+    if (res.code === 200) {
+      recentRecords.value = res.data.records || res.data.list || []
+    }
+  } catch(e) {}
+}
+
+const initCharts = () => {
+  nextTick(() => {
+    if (barChartRef.value) {
+      barChart = echarts.init(barChartRef.value)
+      barChart.setOption({
+        tooltip: { trigger:'axis' },
+        legend: { bottom:0 },
+        grid: { left:'3%', right:'4%', bottom:'15%', containLabel:true },
+        xAxis: { type:'category', data:['U-Net','Mask R-CNN','YOLOv8','YOLOv10','YOLOv11'] },
+        yAxis: { type:'value', max:1 },
+        series: [
+          { name:'Dice', type:'bar', data:[0.92,0.89,0.85,0.87,0.88], itemStyle:{ color:'#409eff' }},
+          { name:'IoU', type:'bar', data:[0.84,0.81,0.76,0.79,0.80], itemStyle:{ color:'#67c23a' }},
+        ]
+      })
+    }
+    if (pieChartRef.value) {
+      pieChart = echarts.init(pieChartRef.value)
+      pieChart.setOption({
+        tooltip: { trigger:'item' },
+        legend: { bottom:0 },
+        series:[{
+          type:'pie',
+          radius:['40%','70%'],
+          avoidLabelOverlap:false,
+          itemStyle:{ borderRadius:10, borderColor:'#fff', borderWidth:2 },
+          label:{ show:false, position:'center' },
+          emphasis:{ label:{ show:true, fontSize:'18', fontWeight:'bold' } },
+          data:[
+            { value:65, name:'检测完成', itemStyle:{ color:'#67c23a' }},
+            { value:20, name:'等待中', itemStyle:{ color:'#409eff' }},
+            { value:10, name:'检测中', itemStyle:{ color:'#e6a23c' }},
+            { value:5, name:'失败', itemStyle:{ color:'#f56c6c' }},
+          ]
+        }]
+      })
+    }
+  })
+}
+
+const handleResize = () => {
+  barChart?.resize()
+  pieChart?.resize()
+}
 
 onMounted(() => {
-  // 折线图
-  const chart1 = echarts.init(overviewChart.value)
-  chart1.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['检测数量', '病变检出数'] },
-    xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月'] },
-    yAxis: { type: 'value' },
-    series: [
-      { name: '检测数量', type: 'line', data: [120, 200, 150, 80, 70], smooth: true },
-      { name: '病变检出数', type: 'line', data: [80, 140, 100, 50, 45], smooth: true },
-    ]
-  })
+  fetchStats()
+  fetchRecentRecords()
+  initCharts()
+  window.addEventListener('resize', handleResize)
+})
 
-  // 饼图
-  const chart2 = echarts.init(pieChart.value)
-  chart2.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0 },
-    series: [{
-      type: 'pie',
-      radius: ['40%', '70%'],
-      data: [
-        { value: 856, name: '已检测' },
-        { value: 470, name: '检出病变' },
-      ],
-      emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
-    }]
-  })
-
-  window.addEventListener('resize', () => {
-    chart1.resize()
-    chart2.resize()
-  })
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  barChart?.dispose()
+  pieChart?.dispose()
 })
 </script>
 
 <style scoped>
-.home-container {
-  padding: 20px;
+.home {
+  padding:0;
 }
-.status-row {
-  margin-bottom: 20px;
+.stats-row {
+  margin-bottom:20px;
 }
-.status-card {
+.stats-card {
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
 }
-.status-card:hover {
+.stats-card:hover {
   transform: translateY(-4px);
 }
-.card-content {
+.stats-content {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap:16px;
 }
-.card-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+.stats-icon {
+  width:52px;
+  height:52px;
+  border-radius:12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #409eff;
 }
-.card-value {
-  font-size: 28px;
-  font-weight: bold;
+.stats-info {
+  flex:1;
+}
+.stats-value {
+  font-size:24px;
+  font-weight:bold;
   color: #303133;
 }
-.card-title {
-  font-size: 14px;
+.stats-title {
+  font-size:13px;
   color: #909399;
-  margin-top: 4px;
+  margin-top:4px;
 }
 .chart-row {
-  margin-bottom: 20px;
+  margin-bottom:20px;
 }
-.chart-box {
-  height: 300px;
-}
-.card-header {
-  font-weight: 600;
-  font-size: 16px;
-}
-.quick-actions {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+.recent-card {
+  margin-top:0;
 }
 </style>

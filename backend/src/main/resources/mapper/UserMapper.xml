@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pinewilt.mapper.UserMapper">
+
+    <!-- 用户角色统计 -->
+    <select id="getRoleStats" resultType="java.util.Map">
+        SELECT
+            role,
+            COUNT(*) AS count
+        FROM sys_user
+        WHERE deleted = 0
+        GROUP BY role
+    </select>
+
+</mapper>

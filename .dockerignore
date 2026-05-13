@@ -1,0 +1,70 @@
+# Docker Compose和Docker相关文件
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile*
+docker-compose/
+
+# Git相关文件
+.git/
+.gitignore
+.gitattributes
+
+# 开发环境文件
+.env
+.env.*
+.node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# 构建输出
+frontend/dist/
+frontend/node_modules/
+backend/target/
+backend/out/
+*.jar
+*.class
+
+# 数据集目录（通常很大，不需要复制到容器）
+dataset/
+deep_learning/dataset/
+data/
+
+# 模型权重文件（通常很大，不需要复制到容器）
+deep_learning/weights/
+*.pth
+*.pt
+*.onnx
+
+# 结果和日志文件
+deep_learning/results/
+deep_learning/checkpoints/
+logs/
+*.log
+
+# IDE和编辑器文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 文档和临时文件
+*.md
+!README.md
+docs/
+tmp/
+temp/
+*.tmp
+
+# 测试文件
+*test*
+*Test*
+*test.py
+*Test.java
+
+# 其他
+*.bak
+*.backup
+*.old

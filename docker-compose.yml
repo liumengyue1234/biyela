@@ -1,0 +1,162 @@
+# Docker Compose 部署配置
+# 用于CT图像松材线虫病检测系统的容器化部署
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: pine-wilt-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pine_wilt_detection
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - pine-wilt-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # 后端Spring Boot服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: pine-wilt-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/pine_wilt_detection?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASWORD: root
+      PYTHON_SERVICE_URL: http://python-service:5000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backend/lib:/app/lib
+    networks:
+      - pine-wilt-network
+
+  # Python深度学习推理服务
+  python-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: pine-wilt-python
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      PYTHON_ENV: production
+      MODEL_DIR: /app/weights
+      DEVICE: cuda  # 如果有GPU，使用cuda；否则使用cpu
+    volumes:
+      - ./deep_learning/weights:/app/weights
+      - ./dataset:/app/dataset
+      - ./deep_learning/checkpoints:/app/checkpoints
+    networks:
+      - pine-wilt-network
+    # 如果有GPU，取消注释下面的配置
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # 前端Vue.js服务（开发环境）
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    container_name: pine-wilt-frontend-dev
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # 避免覆盖node_modules
+    networks:
+      - pine-wilt-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+  # 前端Vue.js服务（生产环境）
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+    container_name: pine-wilt-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - pine-wilt-network
+    depends_on:
+      - backend
+
+  # Nginx反向代理服务（可选，用于生产环境）
+  nginx:
+    image: nginx:alpine
+    container_name: pine-wilt-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    networks:
+      - pine-wilt-network
+    depends_on:
+      - frontend-prod
+      - backend
+    profiles:
+      - production  # 只在生产环境启动
+
+networks:
+  pine-wilt-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+
+# 使用说明：
+# 1. 启动所有服务（开发环境）：
+#    docker-compose up -d
+#
+# 2. 启动所有服务（生产环境）：
+#    docker-compose --profile production up -d
+#
+# 3. 查看服务状态：
+#    docker-compose ps
+#
+# 4. 查看日志：
+#    docker-compose logs -f [service-name]
+#
+# 5. 停止所有服务：
+#    docker-compose down
+#
+# 6. 停止并删除数据卷：
+#    docker-compose down -v
+#
+# 注意事项：
+# - 首次启动会下载镜像，需要一些时间
+# - 确保端口3306、8080、5000、5173、80未被占用
+# - 如果需要使用GPU，取消python-service中的deploy配置注释
+# - 生产环境建议使用nginx服务进行反向代理
