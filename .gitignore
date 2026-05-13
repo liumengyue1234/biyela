@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+env/
+.env
+
+# PyTorch
+*.pth
+*.pt
+weights/
+runs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 数据
+data/raw/
+*.zip
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+dist/
+
+# Maven
+target/
+*.jar
+*.war
+
+# 日志
+*.log
+logs/
+
+# 上传文件
+uploads/
